@@ -18,7 +18,7 @@
 //  -marshal = satisfy the `msgp.Marshaler` and `msgp.Unmarshaler` interfaces (default is true)
 //  -tests = generate tests and benchmarks (default is true)
 //
-// For more information, please read README.md, and the wiki at github.com/tinylib/msgp
+// For more information, please read README.md, and the wiki at github.com/repetier/msgp
 //
 package main
 
@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tinylib/msgp/gen"
-	"github.com/tinylib/msgp/parse"
-	"github.com/tinylib/msgp/printer"
+	"github.com/repetier/msgp/gen"
+	"github.com/repetier/msgp/parse"
+	"github.com/repetier/msgp/printer"
 	"github.com/ttacon/chalk"
 )
 
@@ -86,7 +86,7 @@ func Run(gofile string, mode gen.Method, unexported bool) error {
 	if mode&^gen.Test == 0 {
 		return nil
 	}
-	fmt.Println(chalk.Magenta.Color("======== MessagePack Code Generator ======="))
+	fmt.Println(chalk.Magenta.Color("======== MessagePack Code Generator (repetier version) ======="))
 	fmt.Printf(chalk.Magenta.Color(">>> Input: \"%s\"\n"), gofile)
 	fs, err := parse.File(gofile, unexported)
 	if err != nil {

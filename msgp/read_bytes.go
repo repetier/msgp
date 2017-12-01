@@ -268,6 +268,10 @@ func ReadNilBytes(b []byte) ([]byte, error) {
 // - ErrShortBytes (too few bytes)
 // - TypeError{} (not a float64)
 func ReadFloat64Bytes(b []byte) (f float64, o []byte, err error) {
+	i64, bts, err2 := ReadInt64Bytes(b)
+	if err2 == nil { // check for known int types
+		return float64(i64), bts, nil
+	}
 	if len(b) < 9 {
 		if len(b) >= 5 && b[0] == mfloat32 {
 			var tf float32
@@ -301,13 +305,29 @@ func ReadFloat64Bytes(b []byte) (f float64, o []byte, err error) {
 // - ErrShortBytes (too few bytes)
 // - TypeError{} (not a float32)
 func ReadFloat32Bytes(b []byte) (f float32, o []byte, err error) {
-	if len(b) < 5 {
+	i64, bts, err2 := ReadInt64Bytes(b)
+	if err2 == nil { // check for known int types
+		return float32(i64), bts, nil
+	}
+	if len(b) < 9 {
+		if len(b) >= 5 && b[0] == mfloat32 {
+			var tf float32
+			tf, o, err = ReadFloat32Bytes(b)
+			f = float32(tf)
+			return
+		}
 		err = ErrShortBytes
 		return
 	}
 
-	if b[0] != mfloat32 {
-		err = TypeError{Method: Float32Type, Encoded: getType(b[0])}
+	if b[0] != mfloat64 {
+		if b[0] == mfloat32 {
+			var tf float32
+			tf, o, err = ReadFloat32Bytes(b)
+			f = float32(tf)
+			return
+		}
+		err = badPrefix(Float64Type, b[0])
 		return
 	}
 
@@ -392,6 +412,47 @@ func ReadInt64Bytes(b []byte) (i int64, o []byte, err error) {
 			return
 		}
 		i = getMint64(b)
+		o = b[9:]
+		return
+
+	case muint8:
+		if l < 2 {
+			err = ErrShortBytes
+			return
+		}
+		i = int64(getMuint8(b))
+		o = b[2:]
+		return
+
+	case muint16:
+		if l < 3 {
+			err = ErrShortBytes
+			return
+		}
+		i = int64(getMuint16(b))
+		o = b[3:]
+		return
+
+	case muint32:
+		if l < 5 {
+			err = ErrShortBytes
+			return
+		}
+		i = int64(getMuint32(b))
+		o = b[5:]
+		return
+
+	case muint64:
+		if l < 9 {
+			err = ErrShortBytes
+			return
+		}
+		u := getMuint64(b)
+		if u > math.MaxInt64 {
+			err = badPrefix(IntType, lead)
+			return
+		}
+		i = int64(u)
 		o = b[9:]
 		return
 
@@ -510,6 +571,62 @@ func ReadUint64Bytes(b []byte) (u uint64, o []byte, err error) {
 			return
 		}
 		u = getMuint64(b)
+		o = b[9:]
+		return
+
+	case mint8:
+		if l < 2 {
+			err = ErrShortBytes
+			return
+		}
+		i := int64(getMint8(b))
+		if i < 0 {
+			err = badPrefix(UintType, lead)
+			return
+		}
+		u = uint64(i)
+		o = b[2:]
+		return
+
+	case mint16:
+		if l < 3 {
+			err = ErrShortBytes
+			return
+		}
+		i := int64(getMint16(b))
+		if i < 0 {
+			err = badPrefix(UintType, lead)
+			return
+		}
+		u = uint64(i)
+		o = b[3:]
+		return
+
+	case mint32:
+		if l < 5 {
+			err = ErrShortBytes
+			return
+		}
+		i := int64(getMint32(b))
+		if i < 0 {
+			err = badPrefix(UintType, lead)
+			return
+		}
+		u = uint64(i)
+		o = b[5:]
+		return
+
+	case mint64:
+		if l < 9 {
+			err = ErrShortBytes
+			return
+		}
+		i := getMint64(b)
+		if i < 0 {
+			err = badPrefix(UintType, lead)
+			return
+		}
+		u = uint64(i)
 		o = b[9:]
 		return
 

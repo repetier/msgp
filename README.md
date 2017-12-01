@@ -3,6 +3,15 @@ MessagePack Code Generator [![Build Status](https://travis-ci.org/tinylib/msgp.s
 
 This is a code generation tool and serialization library for [MessagePack](http://msgpack.org). You can read more about MessagePack [in the wiki](http://github.com/tinylib/msgp/wiki), or at [msgpack.org](http://msgpack.org).
 
+### Important notice
+
+This is a fork of https://travis-ci.org/tinylib/msgp with the aim to relax reading/parsing incoming data. The problem
+I want to solve here is parsing messages from msgpack-lite (javascript libraray). Since javascript uses double for
+all numbers it is not predictable what type we get. 7.0 get converted to uint8 7 but original msgpack enforces
+some strict rules so uint8 -> float64 is not allowed, also that is no problem. So here all incoming data gets parsed
+using relaxed rules allowing this conversion.
+
+
 ### Why?
 
 - Use Go as your schema language
